@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#f4f1e9">
-  <meta name="qianfu-build" content="20261102-r16">
+  <meta name="qianfu-build" content="20261102-r17">
   <title>潜伏激斗传•柯洁对局集</title>
   <meta name="description" content="柯洁对局集，选一局棋，逐手重温。">
   <style>@charset "UTF-8";
@@ -397,6 +397,16 @@
 .chronology-list{height:auto;min-height:0;max-height:36dvh;overflow:auto;overscroll-behavior:auto;padding-bottom:16px;touch-action:pan-y}
 .annual-book-grid{min-height:0;padding-bottom:4px;align-items:stretch}
 .annual-book-grid>.annual-table{height:100%}
+.home-hub{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:25px;align-items:start;margin:24px 0 35px}
+.home-hub-navigation{min-width:0}.home-hub .home-navigation{margin:0 0 18px;gap:10px}.home-hub .home-years{margin:0;grid-template-columns:repeat(auto-fit,minmax(62px,1fr))}
+.home-forecast{min-width:0}.forecast-heading{font-size:12px;font-weight:500;color:var(--muted);letter-spacing:1px;margin:0 0 12px}
+.forecast-cards{display:grid;gap:12px}.forecast-card{display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px solid #d5c39a;border-left:3px solid #b7923f;background:var(--panel);padding:15px 16px;min-height:112px}
+.forecast-info{min-width:0}.forecast-info h4{font-size:14px;font-weight:600;line-height:1.6;margin:0 0 5px;color:var(--ink)}
+.forecast-info p{font-size:11px;line-height:1.8;color:var(--muted)}.forecast-info .forecast-place{color:var(--green)}.forecast-opponent{color:var(--green)!important}
+.forecast-countdown{flex:0 0 auto;white-space:nowrap;display:flex;gap:3px;align-items:baseline;color:#a47c25}.forecast-countdown strong{font:600 30px "Times New Roman",serif}.forecast-countdown span{font-size:11px}.forecast-season strong{font-family:inherit;font-size:19px;font-weight:500}
+[data-theme="dark"] .forecast-card{border-color:#75633c;border-left-color:#c7a45c}[data-theme="dark"] .forecast-countdown{color:#d3ae61}
+@media(max-width:1100px){.home-hub{grid-template-columns:minmax(0,1fr);gap:24px}.forecast-cards{grid-template-columns:repeat(2,minmax(0,1fr))}.forecast-card{padding:13px 12px}.forecast-countdown strong{font-size:25px}.forecast-season strong{font-size:17px}}
+@media(max-width:720px){.home-hub{margin:20px 0 28px}.home-hub .home-navigation{gap:7px}.home-hub .home-years{grid-template-columns:repeat(5,minmax(0,1fr))}.forecast-cards{grid-template-columns:minmax(0,1fr)}.forecast-card{min-height:100px;padding:13px 16px}.forecast-heading{font-size:11px}.forecast-info h4{font-size:13px}}
 .annual-table thead th{position:sticky;top:0;z-index:2;text-align:left;padding:8px 2px;background:var(--green-soft);font-weight:500;color:var(--green);border-bottom:1px solid var(--line)}
 .annual-table thead th:first-child{width:18%}.annual-table thead th:last-child{width:23%}
 .bracket-fullscreen{position:fixed;inset:0;z-index:1000;background:var(--paper);padding:20px;display:flex;flex-direction:column;overflow:hidden}
@@ -812,8 +822,16 @@ function createArchiveViews({archive,root,header,node,standardTable,playerLinks,
   function start(title,route){setContext({type:'custom',route});header('',title);}
   function home(){
     start('柯洁对局集','home');const quote=node('blockquote','home-quote');quote.append(node('p','','该来的总会来的。第21届三星杯，人生第四个世界冠军。'),node('p','','我的传奇，在我的呼吸停止之前，永不停止。'),node('footer','','——柯洁，2016年12月8日'));root.append(quote);
-    const nav=node('nav','home-navigation');for(const [label,route] of [['特别收录','special'],['冠亚军全记录','appendix=4'],['交手记录','opponents'],['等级分','ratings'],['世界大赛本赛','appendix=5'],['番棋全记录','appendix=6']])nav.append(anchor(label,route));root.append(nav);
-    const years=node('nav','home-years');for(const y of archive.years)years.append(anchor(y.year,`year=${y.year}`));root.append(years);
+    const hub=node('div','home-hub'),navigation=node('div','home-hub-navigation');
+    const nav=node('nav','home-navigation');for(const [label,route] of [['特别收录','special'],['冠亚军全记录','appendix=4'],['交手记录','opponents'],['等级分','ratings'],['世界大赛本赛','appendix=5'],['番棋全记录','appendix=6']])nav.append(anchor(label,route));navigation.append(nav);
+    const years=node('nav','home-years');for(const y of archive.years)years.append(anchor(y.year,`year=${y.year}`));navigation.append(years);
+    const forecast=node('aside','home-forecast');forecast.setAttribute('aria-label','比赛预告');forecast.append(node('h3','forecast-heading','比赛预告'));const cards=node('div','forecast-cards');
+    const parts=new Intl.DateTimeFormat('en',{timeZone:'Asia/Shanghai',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date()),part=key=>Number(parts.find(p=>p.type===key).value),today=Date.UTC(part('year'),part('month')-1,part('day')),days=Math.round((Date.UTC(2026,11,9)-today)/86400000);
+    for(const event of [{title:'春兰杯•八强',date:'2026.12.09',detail:'第16届春兰杯',place:'湖南怀化芷江',opponent:'VS丁浩',number:days>0?String(days):days===0?'今天':'已到期',unit:days>0?'天':''},{title:'第6届智运会',date:'2027年秋',place:'重庆合川',number:'秋季',unit:''}]){
+      const card=node('article','forecast-card'),info=node('div','forecast-info');info.append(node('h4','',event.title),node('p','forecast-date',event.date));if(event.detail)info.append(node('p','',event.detail));info.append(node('p','forecast-place',event.place));if(event.opponent)info.append(node('p','forecast-opponent',event.opponent));
+      const countdown=node('div','forecast-countdown');countdown.append(node('strong','',event.number),node('span','',event.unit));if(!event.unit)countdown.className+=' forecast-season';card.append(info,countdown);cards.append(card);
+    }
+    forecast.append(cards);hub.append(navigation,forecast);root.append(hub);
     const recent=section('最近棋谱');const games=[...archive.games].sort((a,b)=>compareRecordOrder(b,a)).slice(0,5);
     for(const g of games){const a=node('a','recent-game');a.append(node('time','recent-date',prettyDate(g.date,g.dateEnd)),node('span','recent-event',gameEvent(g)),node('span','recent-result',cardOutcome(g)));a.href=`#${g.id}:0`;a.addEventListener('click',e=>{e.preventDefault();openGame(g.id);});recent.append(a);}
   }
